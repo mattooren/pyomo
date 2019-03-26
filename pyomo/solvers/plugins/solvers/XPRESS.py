@@ -2,8 +2,8 @@
 #
 #  Pyomo: Python Optimization Modeling Objects
 #  Copyright 2017 National Technology and Engineering Solutions of Sandia, LLC
-#  Under the terms of Contract DE-NA0003525 with National Technology and 
-#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain 
+#  Under the terms of Contract DE-NA0003525 with National Technology and
+#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
 #  rights in this software.
 #  This software is distributed under the 3-clause BSD License.
 #  ___________________________________________________________________________
@@ -152,6 +152,11 @@ class XPRESS_shell(ILMLicensedSystemCallSolver):
             mipgap = self.options.pop('mipgap')
             script += "miprelstop=%s\n" % (mipgap,)
 
+        if (self.options.lpoptimize_after_mipoptmize is not None):
+            lpoptimize_after_mipoptmize = self.options.pop('lpoptimize_after_mipoptmize')
+        else:
+            lpoptimize_after_mipoptmize = False
+
         for option_name in self.options:
             script += "%s=%s\n" % (option_name, self.options[option_name])
 
@@ -161,6 +166,9 @@ class XPRESS_shell(ILMLicensedSystemCallSolver):
         # solves
         if self.is_mip:
             script += "mipoptimize\n"
+            if lpoptimize_after_mipoptmize == True:
+                script += "fixglobals -r\n"
+                script += "lpoptimize\n"
         else:
             script += "lpoptimize\n"
 
@@ -431,4 +439,3 @@ class MockXPRESS(XPRESS_shell,MockMIP):
 
     def _execute_command(self,cmd):
         return MockMIP._execute_command(self,cmd)
-
